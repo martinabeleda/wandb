@@ -1,4 +1,4 @@
-"""InterfaceSock - Derived from InterfaceShared using a socket to send to internal thread
+"""InterfaceSock - Derived from InterfaceShared using a socket to send to internal thread.
 
 See interface.py for how interface classes relate to each other.
 
@@ -46,11 +46,13 @@ class InterfaceSock(InterfaceShared):
         assert self._stream_id
         record._info.stream_id = self._stream_id
 
-    def _publish(self, record: "pb.Record", local: bool = None) -> None:
+    def _publish(self, record: "pb.Record", local: Optional[bool] = None) -> None:
         self._assign(record)
         self._sock_client.send_record_publish(record)
 
-    def _communicate_async(self, rec: "pb.Record", local: bool = None) -> MessageFuture:
+    def _communicate_async(
+        self, rec: "pb.Record", local: Optional[bool] = None
+    ) -> MessageFuture:
         self._assign(rec)
         assert self._router
         if self._process_check and self._process and not self._process.is_alive():

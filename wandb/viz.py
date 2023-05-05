@@ -16,8 +16,8 @@ class Visualize:
         }
 
     @staticmethod
-    def get_config_key(key: str) -> Tuple[str]:
-        return ("_wandb", "viz", key)
+    def get_config_key(key: str) -> Tuple[str, str, str]:
+        return "_wandb", "viz", key
 
     @property
     def value(self) -> Table:
@@ -54,8 +54,8 @@ class CustomChart:
         }
 
     @staticmethod
-    def get_config_key(key: str) -> Tuple[str]:
-        return ("_wandb", "visualize", key)
+    def get_config_key(key: str) -> Tuple[str, str, str]:
+        return "_wandb", "visualize", key
 
     @staticmethod
     def user_query(table_key: str) -> Dict[str, Any]:
@@ -99,7 +99,7 @@ def custom_chart(
 ) -> CustomChart:
     if not isinstance(data_table, Table):
         raise Error(
-            f"Expected `data_table` to be `wandb.Table` type, instead got  {type(data_table).__name__}"
+            f"Expected `data_table` to be `wandb.Table` type, instead got {type(data_table).__name__}"
         )
     return CustomChart(
         id=vega_spec_name,

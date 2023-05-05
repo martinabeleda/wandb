@@ -19,15 +19,15 @@ from wandb import util
 from wandb.sdk.interface.interface import GlobStr
 
 if TYPE_CHECKING:
-    import wandb.vendor.watchdog.events as wd_events
-    import wandb.vendor.watchdog.observers.api as wd_api
-    import wandb.vendor.watchdog.observers.polling as wd_polling
+    import wandb.vendor.watchdog_0_9_0.observers.api as wd_api
+    import wandb.vendor.watchdog_0_9_0.observers.polling as wd_polling
+    import wandb.vendor.watchdog_0_9_0.watchdog.events as wd_events
     from wandb.sdk import wandb_settings
     from wandb.sdk.interface.interface import PolicyName
     from wandb.sdk.internal.file_pusher import FilePusher
 else:
-    wd_polling = util.vendor_import("watchdog.observers.polling")
-    wd_events = util.vendor_import("watchdog.events")
+    wd_polling = util.vendor_import("wandb_watchdog.observers.polling")
+    wd_events = util.vendor_import("wandb_watchdog.events")
 
 PathStr = str  # TODO(spencerpearson): would be nice to use Path here
 SaveName = NewType("SaveName", str)
@@ -71,7 +71,7 @@ class FileEventHandler(abc.ABC):
 
 
 class PolicyNow(FileEventHandler):
-    """This policy only uploads files now"""
+    """This policy only uploads files now."""
 
     def on_modified(self, force: bool = False) -> None:
         # only upload if we've never uploaded or when .save is called
@@ -88,7 +88,7 @@ class PolicyNow(FileEventHandler):
 
 
 class PolicyEnd(FileEventHandler):
-    """This policy only updates at the end of the run"""
+    """This policy only updates at the end of the run."""
 
     def on_modified(self, force: bool = False) -> None:
         pass
@@ -106,8 +106,11 @@ class PolicyEnd(FileEventHandler):
 
 
 class PolicyLive(FileEventHandler):
-    """This policy will upload files every RATE_LIMIT_SECONDS as it
-    changes throttling as the size increases"""
+    """Event handler that uploads respecting throttling.
+
+    Uploads files every RATE_LIMIT_SECONDS, which changes as the size increases to deal
+    with throttling.
+    """
 
     RATE_LIMIT_SECONDS = 15
     unit_dict = dict(util.POW_10_BYTES)
@@ -218,7 +221,7 @@ class DirWatcher:
     @property
     def emitter(self) -> Optional["wd_api.EventEmitter"]:
         try:
-            return next(iter(self._file_observer.emitters))  # type: ignore
+            return next(iter(self._file_observer.emitters))
         except StopIteration:
             return None
 
@@ -250,11 +253,11 @@ class DirWatcher:
             feh.on_modified(force=True)
 
     def _per_file_event_handler(self) -> "wd_events.FileSystemEventHandler":
-        """Create a Watchdog file event handler that does different things for every file"""
+        """Create a Watchdog file event handler that does different things for every file."""
         file_event_handler = wd_events.PatternMatchingEventHandler()
-        file_event_handler.on_created = self._on_file_created  # type: ignore[assignment]
-        file_event_handler.on_modified = self._on_file_modified  # type: ignore[assignment]
-        file_event_handler.on_moved = self._on_file_moved  # type: ignore[assignment]
+        file_event_handler.on_created = self._on_file_created
+        file_event_handler.on_modified = self._on_file_modified
+        file_event_handler.on_moved = self._on_file_moved
         file_event_handler._patterns = [os.path.join(self._dir, os.path.normpath("*"))]
         # Ignore hidden files/folders
         #  TODO: what other files should we skip?
